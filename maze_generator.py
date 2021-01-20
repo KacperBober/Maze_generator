@@ -1,7 +1,6 @@
 import numpy as np
 from numpy.random import randint as rand
 import matplotlib.pyplot as plt
-from matplotlib.patches import RegularPolygon
 import math
 
 
@@ -63,10 +62,11 @@ def allowed_moves(hexagon, size):
 
     return moves
 
+
 def create_hexagon_grid(size, hexagon_size):
     hexagons = []
-    x_step = np.sqrt(3) * hexagon_size
-    y_step = 3/2 * hexagon_size
+    x_step = np.sqrt(3) * hexagon_size -0.1
+    y_step = 3/2 * hexagon_size - 0.1
     for row in range(0, size[0]):
         rows = []
         for col in range(0, size[1]):
@@ -77,43 +77,123 @@ def create_hexagon_grid(size, hexagon_size):
             y_cord = y_step * col
             hexa = Hexagon(x_cord, y_cord, row, col, hexagon_size)
             hexa.allowed_moves = allowed_moves(hexa, size)
+            hexa.neighbours = hexa.allowed_moves[:]
             hexa.create_hex_vertexes()
             rows.append(hexa)
         hexagons.append(rows)
     return hexagons
 
 
-def create_maze(hexagons, grid_size):
-    visited = []
-    stack = []
+def maze(hexagons, size, complexity=2, density=0.02):
+    # Only odd shapes
+    shape = size
+    # Adjust complexity and density relative to maze size
+    complexity = int(complexity * (5 * (shape[0] + shape[1]))) # number of components
+    density = int(density * ((shape[0] // 2) * (shape[1] // 2))) # size of components
 
-    stack.append(hexagons[0]) # initial point is 0, 0
+    # Make aisles
+    for i in range(density):
+        x, y = rand(1, shape[0]), rand(1, shape[1]) # pick a random position
+        hexagon = hexagons[x][y]
+        for j in range(complexity):
 
-    while stack:
-        current_cell = stack.pop()
+            neighbours, move_indexes = find_neighbours(hexagons[x][y])
+            if len(neighbours):
+                rand_number = rand(0, len(neighbours))
+                y_,x_ = neighbours[rand_number]
+                if hexagons[x][y].allowed_moves[move_indexes[rand_number]] == 1:
+                    hexagons[x][y].allowed_moves[move_indexes[rand_number]] = 0
+                    find_moving_index = convert_index(move_indexes[rand_number])
+                    hexagons[x_][y_].allowed_moves[find_moving_index] = 0
+                    x, y = x_, y_
+
+def convert_index(x):
+    converted_value = 0
+    if x == 0:
+        converted_value = 3
+    elif x ==1:
+        converted_value = 4
+    elif x == 2:
+        converted_value = 5
+    elif x == 3:
+        converted_value = 0
+    elif x == 4:
+        converted_value = 1
+    else:
+        converted_value = 2
+    return converted_value
+
+def find_neighbours(hexagon):
+    allowed_moves = []
+    move_index = []
+    if hexagon.grid_row % 2 == 0:
+        for i in range(0, len(hexagon.allowed_moves)):
+            if hexagon.allowed_moves[i] == 1:
+                allowed_moves.append(move_to_index_parity(hexagon, i))
+                move_index.append(i)
+    else:
+        for i in range(0, len(hexagon.allowed_moves)):
+            if hexagon.allowed_moves[i] == 1:
+                allowed_moves.append(move_to_index_not_parity(hexagon, i))
+                move_index.append(i)
+    return [allowed_moves, move_index]
 
 
+def move_to_index_parity(hexagon, x):
+    if x == 0:
+        return[hexagon.grid_row + 1, hexagon.grid_col]
+    elif x == 1:
+        return[hexagon.grid_row, hexagon.grid_col + 1]
+    elif x == 2:
+        return[hexagon.grid_row - 1, hexagon.grid_col]
+    elif x == 3:
+        return[hexagon.grid_row - 1, hexagon.grid_col - 1]
+    elif x == 4:
+        return[hexagon.grid_row, hexagon.grid_col - 1]
+    else:
+        return[hexagon.grid_row + 1, hexagon.grid_col - 1]
 
+def move_to_index_not_parity(hexagon, x):
+    if x == 0:
+        return[hexagon.grid_row + 1, hexagon.grid_col + 1]
+    elif x == 1:
+        return[hexagon.grid_row, hexagon.grid_col + 1]
+    elif x == 2:
+        return[hexagon.grid_row - 1, hexagon.grid_col + 1]
+    elif x == 3:
+        return[hexagon.grid_row - 1, hexagon.grid_col]
+    elif x == 4:
+        return[hexagon.grid_row, hexagon.grid_col - 1]
+    else:
+        return[hexagon.grid_row + 1, hexagon.grid_col]
 
 
 
 hexagon_size = 5/4
-size = (10, 10)
+size = (20, 20)
 hexagons = create_hexagon_grid(size, hexagon_size)
 
-# Create data
-x = [hexagon.center_x for hexagon in hexagons]
-y = [hexagon.center_y for hexagon in hexagons]
+x = []
+y = []
 
-hex_lines_x = [hexagon.hex_points_x for hexagon in hexagons]
-hex_lines_y = [hexagon.hex_points_y for hexagon in hexagons]
+hex_lines_x = []
+hex_lines_y = []
 
-colors = (0, 0, 0)
+maze(hexagons, size)
+
+for hex_rows in hexagons:
+    for i in range(0,len(hex_rows)):
+        x.append(hex_rows[i].center_x)
+        y.append(hex_rows[i].center_y)
+        for j in range(0, 6):
+            if hex_rows[i].allowed_moves[j] == hex_rows[i].neighbours[j]:
+                hex_lines_x.append(hex_rows[i].hex_points_x)
+                hex_lines_y.append(hex_rows[i].hex_points_y)
 
 # Plot
-#plt.scatter(x, y, c=colors, alpha=0.5)
+#plt.scatter(x, y, alpha=0.5)
 
-for i in range(0, len(hexagons)):
+for i in range(0, len(hex_lines_x)):
     x = hex_lines_x[i]
     y = hex_lines_y[i]
 
