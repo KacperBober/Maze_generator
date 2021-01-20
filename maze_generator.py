@@ -65,8 +65,8 @@ def allowed_moves(hexagon, size):
 
 def create_hexagon_grid(size, hexagon_size):
     hexagons = []
-    x_step = np.sqrt(3) * hexagon_size -0.1
-    y_step = 3/2 * hexagon_size - 0.1
+    x_step = np.sqrt(3) * hexagon_size
+    y_step = 3/2 * hexagon_size
     for row in range(0, size[0]):
         rows = []
         for col in range(0, size[1]):
@@ -84,7 +84,7 @@ def create_hexagon_grid(size, hexagon_size):
     return hexagons
 
 
-def maze(hexagons, size, complexity=2, density=0.02):
+def maze(hexagons, size, complexity=0.7, density=0.05):
     # Only odd shapes
     shape = size
     # Adjust complexity and density relative to maze size
@@ -93,7 +93,7 @@ def maze(hexagons, size, complexity=2, density=0.02):
 
     # Make aisles
     for i in range(density):
-        x, y = rand(1, shape[0]), rand(1, shape[1]) # pick a random position
+        x, y = rand(1, shape[0] - 1), rand(1, shape[1] - 1) # pick a random position
         hexagon = hexagons[x][y]
         for j in range(complexity):
 
@@ -106,6 +106,7 @@ def maze(hexagons, size, complexity=2, density=0.02):
                     find_moving_index = convert_index(move_indexes[rand_number])
                     hexagons[x_][y_].allowed_moves[find_moving_index] = 0
                     x, y = x_, y_
+
 
 def convert_index(x):
     converted_value = 0
@@ -185,10 +186,15 @@ for hex_rows in hexagons:
     for i in range(0,len(hex_rows)):
         x.append(hex_rows[i].center_x)
         y.append(hex_rows[i].center_y)
+
         for j in range(0, 6):
             if hex_rows[i].allowed_moves[j] == hex_rows[i].neighbours[j]:
-                hex_lines_x.append(hex_rows[i].hex_points_x)
-                hex_lines_y.append(hex_rows[i].hex_points_y)
+                hexagon = hex_rows[i]
+                if j == 0:
+                    plt.plot([hexagon.hex_points_x[0],hexagon.hex_points_x[5]],[hexagon.hex_points_y[0],hexagon.hex_points_y[5]], color = 'k')
+                else:
+                    plt.plot([hexagon.hex_points_x[j-1], hexagon.hex_points_x[j]], [hexagon.hex_points_y[j-1],hexagon.hex_points_y[j]],  color = 'k')
+
 
 # Plot
 #plt.scatter(x, y, alpha=0.5)
@@ -197,8 +203,9 @@ for i in range(0, len(hex_lines_x)):
     x = hex_lines_x[i]
     y = hex_lines_y[i]
 
-    x.append(hex_lines_x[i][0])
-    y.append(hex_lines_y[i][0])
+    if hex_lines_x[i]:
+        x.append(hex_lines_x[i][0])
+        y.append(hex_lines_y[i][0])
     plt.plot(x, y)
 
 plt.title('Scatter plot pythonspot.com')
