@@ -195,21 +195,17 @@ for hex_rows in hexagons:
     for i in range(0,len(hex_rows)):
         x.append(hex_rows[i].center_x)
         y.append(hex_rows[i].center_y)
+
         for j in range(0, 6):
-            if hex_rows[i].allowed_moves[j] != hex_rows[i].neighbours[j]:
-                hex_lines_x.append(hex_rows[i].hex_points_x)
-                hex_lines_y.append(hex_rows[i].hex_points_y)
+            if hex_rows[i].allowed_moves[j] == hex_rows[i].neighbours[j]:
+                hexagon = hex_rows[i]
+                if j == 0:
+                    plt.plot([hexagon.hex_points_x[0],hexagon.hex_points_x[5]],[hexagon.hex_points_y[0],hexagon.hex_points_y[5]], color = 'k')
+                else:
+                    plt.plot([hexagon.hex_points_x[j-1], hexagon.hex_points_x[j]], [hexagon.hex_points_y[j-1],hexagon.hex_points_y[j]],  color = 'k')
 
 # Plot
 #plt.scatter(x, y, alpha=0.5)
-
-for i in range(0, len(hex_lines_x)):
-    x = hex_lines_x[i]
-    y = hex_lines_y[i]
-
-    x.append(hex_lines_x[i][0])
-    y.append(hex_lines_y[i][0])
-    plt.plot(x, y)
 
 plt.title('Scatter plot pythonspot.com')
 plt.xlabel('x')
