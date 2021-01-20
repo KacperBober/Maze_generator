@@ -11,6 +11,8 @@ class Hexagon:
         self.center_x = x_cord
         self.center_y = y_cord
 
+        self.visited = False
+
         self.size = size
 
         self.hex_points_x = []
@@ -84,28 +86,35 @@ def create_hexagon_grid(size, hexagon_size):
     return hexagons
 
 
-def maze(hexagons, size, complexity=2, density=0.02):
-    # Only odd shapes
-    shape = size
-    # Adjust complexity and density relative to maze size
-    complexity = int(complexity * (5 * (shape[0] + shape[1]))) # number of components
-    density = int(density * ((shape[0] // 2) * (shape[1] // 2))) # size of components
+def unvisited_neighbours(heksagons, neighbours):
+    unvisited = []
+    for i in range(0, len(neighbours)):
+        if heksagons[neighbours[i][0]][neighbours[i][1]].visited == False:
+            unvisited.append(neighbours[i])
+    return unvisited
 
-    # Make aisles
-    for i in range(density):
-        x, y = rand(1, shape[0]), rand(1, shape[1]) # pick a random position
-        hexagon = hexagons[x][y]
-        for j in range(complexity):
 
-            neighbours, move_indexes = find_neighbours(hexagons[x][y])
-            if len(neighbours):
-                rand_number = rand(0, len(neighbours))
-                y_,x_ = neighbours[rand_number]
-                if hexagons[x][y].allowed_moves[move_indexes[rand_number]] == 1:
-                    hexagons[x][y].allowed_moves[move_indexes[rand_number]] = 0
-                    find_moving_index = convert_index(move_indexes[rand_number])
-                    hexagons[x_][y_].allowed_moves[find_moving_index] = 0
-                    x, y = x_, y_
+def maze(heksagons, size):
+    initial_cel = heksagons[0][0]
+    initial_cel.visited = True
+    stack = [initial_cel]
+    while stack:
+        current_cell = stack.pop()
+        neighbours, indexes = find_neighbours(current_cell)
+        unvisited_n = unvisited_neighbours(heksagons, neighbours)
+        if len(unvisited_n):
+            stack.append(current_cell)
+            ran = rand(0, len(unvisited_n))
+            wall = indexes[ran]
+            current_cell.allowed_moves[wall] = 0
+            x, y = unvisited_n[ran]
+            current_cell = heksagons[x][y]
+            current_cell.allowed_moves[convert_index(wall)] = 0
+            current_cell.visited = True
+            stack.append(current_cell)
+
+
+
 
 def convert_index(x):
     converted_value = 0
@@ -122,6 +131,7 @@ def convert_index(x):
     else:
         converted_value = 2
     return converted_value
+
 
 def find_neighbours(hexagon):
     allowed_moves = []
@@ -170,7 +180,7 @@ def move_to_index_not_parity(hexagon, x):
 
 
 hexagon_size = 5/4
-size = (20, 20)
+size = (5, 5)
 hexagons = create_hexagon_grid(size, hexagon_size)
 
 x = []
@@ -186,7 +196,7 @@ for hex_rows in hexagons:
         x.append(hex_rows[i].center_x)
         y.append(hex_rows[i].center_y)
         for j in range(0, 6):
-            if hex_rows[i].allowed_moves[j] == hex_rows[i].neighbours[j]:
+            if hex_rows[i].allowed_moves[j] != hex_rows[i].neighbours[j]:
                 hex_lines_x.append(hex_rows[i].hex_points_x)
                 hex_lines_y.append(hex_rows[i].hex_points_y)
 
