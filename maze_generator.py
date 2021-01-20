@@ -65,8 +65,8 @@ def allowed_moves(hexagon, size):
 
 def create_hexagon_grid(size, hexagon_size):
     hexagons = []
-    x_step = np.sqrt(3) * hexagon_size
-    y_step = 3/2 * hexagon_size
+    x_step = np.sqrt(3) * hexagon_size -0.1
+    y_step = 3/2 * hexagon_size-0.1
     for row in range(0, size[0]):
         rows = []
         for col in range(0, size[1]):
@@ -84,7 +84,7 @@ def create_hexagon_grid(size, hexagon_size):
     return hexagons
 
 
-def maze(hexagons, size, complexity=0.7, density=0.05):
+def maze(hexagons, size, complexity=0.7, density=0.02):
     # Only odd shapes
     shape = size
     # Adjust complexity and density relative to maze size
